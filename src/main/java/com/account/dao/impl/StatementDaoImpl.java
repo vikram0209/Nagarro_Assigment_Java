@@ -13,13 +13,12 @@ import com.account.model.Statement;
 public class StatementDaoImpl implements StatementDao {
 	
 	@Autowired 
-	JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 	
 
 	@Override
 	public List<Statement> getStatement(int id){
 		String stmtsql = "SELECT * FROM statement where account_id="+id;
-		String accountsql = "SELECT * FROM account where ID="+id;
 		List<Statement> stmtList = jdbcTemplate.query(stmtsql,(rs,rowNum)-> new Statement(
 		rs.getInt("ID"),rs.getString("datefield"),rs.getString("amount")
 		)

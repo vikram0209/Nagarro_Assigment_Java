@@ -1,14 +1,13 @@
 package com.account.model;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 public class StatementResponse implements Serializable{
     
+
+	private static final long serialVersionUID = 1L;
+	
+	
 	private boolean isSuccess=true;
 	private String message="Success";
 	private Object data;

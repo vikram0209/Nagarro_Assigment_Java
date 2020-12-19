@@ -10,8 +10,17 @@ public class ResultDto {
 	private int accountId;
 	private String accountNumber;
 	private String accountType;
+	private String username;
 	
 	
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public ResultDto(){}
 
 	public ResultDto(List<Statement> stmtList, int accountId,

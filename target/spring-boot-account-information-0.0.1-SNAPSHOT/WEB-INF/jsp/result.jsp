@@ -7,6 +7,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<META HTTP-EQUIV="Expires" CONTENT="Sat, 01 Dec 2001 00:00:00 GMT">
+<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Cache-Control" CONTENT=no-cache">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,7 +23,8 @@
 </head>
 
 <body>
-    
+ <table><tr><td align="right" style="vertical-align:top;" width="30%"><a href="${pageContext.request.contextPath}/welcome/${username}"><font size="+2">Home</font></a></td>
+   <td> 
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account No:&nbsp;&nbsp;&nbsp;${result.getAccountNumber()}
     <br />
     <br />
@@ -30,7 +34,7 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account Statements
     <br />
     <br />
-   
+  
     <table>
     <tr>
                
@@ -49,9 +53,18 @@
                 <td>${user.getDatefield()}</user>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 
                  <td>${user.getAmount()}</user>
+                 <td>${result.getUsername()}</user>
             </tr>
         </c:forEach>
     </table>
+    <% 
+    response.setHeader("Pragma","No-cache");
+    response.setHeader("Cache-Control","no-cache,no-store,must-revalidate");
+    response.setDateHeader("Expires",-1);
+    
+    %>
+    </td></tr>
+    <table>
 </body>
 <!-- /container -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

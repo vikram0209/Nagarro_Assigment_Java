@@ -1,10 +1,10 @@
 package com.account.service;
 
-import javax.servlet.http.HttpServletRequest;
 import com.account.service.impl.ResultDto;
 
 public interface AccountService {
 	
-	ResultDto getStatement(HttpServletRequest request ,String userNames);
+	public ResultDto getStatementAdmin(String fromdate,String todate,String fromamount,String toamount,int accountNo);
+	public ResultDto getStatementUser(int accountNo);
 
 }

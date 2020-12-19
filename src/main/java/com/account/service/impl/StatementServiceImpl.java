@@ -9,137 +9,134 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.account.constant.AccountConstants;
 import com.account.dao.AccountDao;
 import com.account.dao.StatementDao;
 import com.account.model.Account;
 import com.account.model.Statement;
 import com.account.service.AccountService;
+import com.account.utility.Utility;
 
 @Service
 public class StatementServiceImpl implements AccountService {
 
-	LocalDate fromDate = null;
-	LocalDate toDate = null;
-	List<Statement> finalList =null;
+	private LocalDate fromDate = null;
+	private LocalDate toDate = null;
+	private List<Statement> stmtlList = null;
 
 	@Autowired
-	StatementDao statementDao;
+	private StatementDao statementDao;
 
 	@Autowired
-	AccountDao accountDao;
+	private AccountDao accountDao;
 
 	@Override
-	public ResultDto getStatement(HttpServletRequest request, String userName) {
+	public ResultDto getStatementAdmin(
+			String fromDateString, String toDateString, String fromAmount,
+			String toAmount, int accountID) {
 		ResultDto dto = new ResultDto();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-		String fromDateString = request.getParameter("fromdate");
-		String toDateString = request.getParameter("todate");
-		String accountNo = request.getParameter("account");
-		String fromAmount = request.getParameter("fromamount");
-		String toAmount = request.getParameter("toamount");
 
-		if (userName.equals(AccountConstants.TEST_USER)) {
-			toDate = LocalDate.now();
-			fromDate = toDate.minusMonths(3);
-		} else if (StringUtils.isNotBlank(fromDateString)
-				&& StringUtils.isNotBlank(toDateString)
-				&& userName.equals(AccountConstants.ADMIN_USER)) {
+		if (StringUtils.isNotBlank(fromDateString)
+				&& StringUtils.isNotBlank(toDateString)) {
 			fromDate = LocalDate.parse(fromDateString, dtf);
 			toDate = LocalDate.parse(toDateString, dtf);
 		} else if (StringUtils.isNotBlank(fromDateString)) {
 			fromDate = LocalDate.parse(fromDateString, dtf);
 			toDate = fromDate.plusMonths(3);
-		} else {
-			fromDate = LocalDate.now();
-			toDate = fromDate.minusMonths(3);
 		}
 
-		List<Account> accountInfo = accountDao.getAccount(Integer
-				.parseInt(accountNo));
-		List<Statement> stmt = statementDao.getStatement(Integer
-				.parseInt(accountNo));
-		if(StringUtils.isNotBlank(fromAmount) && StringUtils.isNotBlank(toAmount)){
-			 finalList = stmt
+		List<Account> accountInfo = accountDao.getAccount(accountID);
+		List<Statement> stmt = statementDao.getStatement(accountID);
+		if (StringUtils.isNotBlank(fromAmount)
+				&& StringUtils.isNotBlank(toAmount)) {
+			stmtlList = stmt
 					.stream()
-					.filter(l ->Double.parseDouble(l.getAmount())==
-							Double.parseDouble(fromAmount) || Double.parseDouble(l.getAmount())
-							==Double.parseDouble(toAmount)
-							|| (Double.parseDouble(l.getAmount())>
-							Double.parseDouble(fromAmount)
-							&& Double.parseDouble(l.getAmount())<
-							Double.parseDouble(toAmount))).collect(Collectors.toList());
-			
-		}else if(StringUtils.isNotBlank(toDateString) && StringUtils.isNotBlank(fromDateString)){
-			 finalList = stmt
-						.stream()
-						.filter(l -> (LocalDate.parse(l.getDatefield(), dtf).equals(
-								fromDate) || LocalDate.parse(l.getDatefield(), dtf)
-								.equals(toDate))
-								|| LocalDate.parse(l.getDatefield(), dtf).isAfter(
-										fromDate)
-								&& LocalDate.parse(l.getDatefield(), dtf).isBefore(
-										toDate)).collect(Collectors.toList());
-				}
-		
-		
-		dto.setAccountNumber(maskNumber(accountInfo.get(0).getAccountNumber()
-				.toString(), "xxxxxxxxx####"));
+					.filter(l -> Double.parseDouble(l.getAmount()) == Double
+							.parseDouble(fromAmount)
+							|| Double.parseDouble(l.getAmount()) == Double
+									.parseDouble(toAmount)
+							|| (Double.parseDouble(l.getAmount()) > Double
+									.parseDouble(fromAmount) && Double
+									.parseDouble(l.getAmount()) < Double
+									.parseDouble(toAmount)))
+					.collect(Collectors.toList());
+
+			Collections.sort(stmtlList);
+			dto.setStmtList(stmtlList);
+
+		} else if (StringUtils.isNotBlank(toDateString)
+				&& StringUtils.isNotBlank(fromDateString)) {
+			stmtlList = getStatementsList(dtf, stmt);
+			Collections.sort(stmtlList);
+			dto.setStmtList(stmtlList);
+		} else if (StringUtils.isNotBlank(fromDateString)) {
+			stmtlList = getStatementsList(dtf, stmt);
+			Collections.sort(stmtlList);
+			dto.setStmtList(stmtlList);
+		}
+
+		if (StringUtils.isBlank(fromDateString)
+				&& StringUtils.isBlank(toDateString)
+				&& StringUtils.isBlank(fromAmount)
+				&& StringUtils.isBlank(toAmount)) {
+			Collections.sort(stmt);
+			toDate = LocalDate.parse(stmt.get(stmt.size() - 1).getDatefield(),
+					dtf);
+			fromDate = toDate.minusMonths(3);
+			stmtlList = getStatementsList(dtf, stmt);
+			dto.setStmtList(stmtlList);
+		}
+
 		dto.setAccountType(accountInfo.get(0).getAccountType());
-        if(userName.equals(AccountConstants.TEST_USER) || (userName.equals(AccountConstants.ADMIN_USER))&& StringUtils.isBlank(fromDateString)
-				&& StringUtils.isBlank(toDateString)&& StringUtils.isBlank(fromAmount) && StringUtils.isBlank(toAmount) ){
-        	Collections.sort(stmt);
-        	LocalDate toDate =LocalDate.parse(stmt.get(stmt.size()-1).getDatefield(), dtf);
-        	LocalDate fromDate =toDate.minusMonths(3);
-        	List<Statement> defaultuserList = stmt
-    				.stream()
-    				.filter(l -> (LocalDate.parse(l.getDatefield(), dtf).equals(
-    						fromDate) || LocalDate.parse(l.getDatefield(), dtf)
-    						.equals(toDate))
-    						|| LocalDate.parse(l.getDatefield(), dtf).isAfter(
-    								fromDate)
-    						&& LocalDate.parse(l.getDatefield(), dtf).isBefore(
-    								toDate)).collect(Collectors.toList());
-        	dto.setStmtList(defaultuserList);
-        	
-        }if(userName.equals(AccountConstants.ADMIN_USER)&& StringUtils.isNotBlank(fromDateString) && StringUtils.isBlank(fromAmount) && StringUtils.isBlank(toAmount)){
-        	List<Statement> defaultuserList = stmt
-    				.stream()
-    				.filter(l -> (LocalDate.parse(l.getDatefield(), dtf).equals(
-    						fromDate) || LocalDate.parse(l.getDatefield(), dtf)
-    						.equals(toDate))
-    						|| LocalDate.parse(l.getDatefield(), dtf).isAfter(
-    								fromDate)
-    						&& LocalDate.parse(l.getDatefield(), dtf).isBefore(
-    								toDate)).collect(Collectors.toList());
-        	Collections.sort(defaultuserList);
-        	dto.setStmtList(defaultuserList);
-        	
-        }else{
-        	Collections.sort(finalList);
-    		dto.setStmtList(finalList);
-        }
-	
+		dto.setAccountNumber(Utility.maskNumber(accountInfo.get(0)
+				.getAccountNumber().toString(), "xxxxxxxxx####"));
 		return dto;
 	}
 
-	public static String maskNumber(String number, String mask) {
+	
 
-		int index = 0;
-		StringBuilder masked = new StringBuilder();
-		for (int i = 0; i < mask.length(); i++) {
-			char c = mask.charAt(i);
-			if (c == '#') {
-				masked.append(number.charAt(index));
-				index++;
-			} else if (c == 'x') {
-				masked.append(c);
-				index++;
-			} else {
-				masked.append(c);
-			}
-		}
-		return masked.toString();
+	@Override
+	public ResultDto getStatementUser(int accountNo) {
+		ResultDto dto = new ResultDto();
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+		List<Account> accountInfo = accountDao.getAccount(accountNo);
+		List<Statement> stmt = statementDao.getStatement(accountNo);
+		dto.setAccountNumber(Utility.maskNumber(accountInfo.get(0)
+				.getAccountNumber().toString(), "xxxxxxxxx####"));
+		dto.setAccountType(accountInfo.get(0).getAccountType());
+		Collections.sort(stmt);
+		LocalDate toDate = LocalDate.parse(stmt.get(stmt.size() - 1)
+				.getDatefield(), dtf);
+		LocalDate fromDate = toDate.minusMonths(3);
+		List<Statement> defaultuserList = stmt
+				.stream()
+				.filter(l -> (LocalDate.parse(l.getDatefield(), dtf).equals(
+						fromDate) || LocalDate.parse(l.getDatefield(), dtf)
+						.equals(toDate))
+						|| LocalDate.parse(l.getDatefield(), dtf).isAfter(
+								fromDate)
+						&& LocalDate.parse(l.getDatefield(), dtf).isBefore(
+								toDate)).collect(Collectors.toList());
+		dto.setStmtList(defaultuserList);
+
+		return dto;
+	}
+	
+	
+	private List<Statement> getStatementsList(DateTimeFormatter dtf,
+			List<Statement> stmt) {
+		System.out.print("todate" + toDate);
+		System.out.print("fromDate" + fromDate);
+		stmtlList = stmt
+				.stream()
+				.filter(l -> (LocalDate.parse(l.getDatefield(), dtf).equals(
+						fromDate) || LocalDate.parse(l.getDatefield(), dtf)
+						.equals(toDate))
+						|| LocalDate.parse(l.getDatefield(), dtf).isAfter(
+								fromDate)
+						&& LocalDate.parse(l.getDatefield(), dtf).isBefore(
+								toDate)).collect(Collectors.toList());
+		return stmtlList;
 	}
 
 }

@@ -12,7 +12,7 @@ import com.account.model.Account;
 public class AccountDaoImpl implements AccountDao {
 	
 	@Autowired 
-	JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 	
 
 	@Override

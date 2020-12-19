@@ -2,13 +2,13 @@ package com.account.test;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.account.model.AccountStatementRequest;
+import com.account.controllers.StatementController;
 import com.account.model.Statement;
 import com.account.service.AccountService;
 import com.account.service.impl.ResultDto;
@@ -29,6 +29,8 @@ import com.account.service.impl.ResultDto;
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public class StatementControllerTest {
+	
+	private static final Logger log=LoggerFactory.getLogger(StatementControllerTest.class);
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -45,19 +47,31 @@ public class StatementControllerTest {
 			accountType);
 
 	@Test
-	public void getAccountStatement() throws Exception {
+	public void getAccountStatementUser() throws Exception {
 
 		Mockito.when(
-				accountService.getStatement(
-						 Mockito.any(HttpServletRequest.class),
-						Mockito.anyString())).thenReturn(dtoResult);
+				accountService.getStatementUser(
+						 Mockito.any(Integer.class))).thenReturn(dtoResult);
 
 		RequestBuilder requestBuilder = MockMvcRequestBuilders.get(
-				"/getAccountStatement").accept(MediaType.APPLICATION_JSON);
+				"/getAccountStatementUser").accept(MediaType.APPLICATION_JSON);
 
 		MvcResult result = mockMvc.perform(requestBuilder).andReturn();
-		System.out.println(result.getResponse());
+		log.info("response"+result.getResponse());
 		Assert.assertNotNull(result);
 	}
+	@Test
+	public void getAccountStatementAdmin() throws Exception {
 
+		Mockito.when(
+				accountService.getStatementAdmin(
+						 Mockito.any(String.class),Mockito.any(String.class),Mockito.any(String.class),Mockito.any(String.class),Mockito.any(Integer.class))).thenReturn(dtoResult);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get(
+				"/getAccountStatementAdmin").accept(MediaType.APPLICATION_JSON);
+
+		MvcResult result = mockMvc.perform(requestBuilder).andReturn();
+		log.info("response"+result.getResponse());
+		Assert.assertNotNull(result);
+	}
 }
